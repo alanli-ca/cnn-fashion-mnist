@@ -25,7 +25,8 @@ def conv2d(X, W, stride=1, padding="VALID"):
     return tf.nn.conv2d(X, W, strides=[1,stride,stride,1], padding=padding)
 
 def max_pool(X, stride=2, pool_size=3, padding="VALID"):
-    return tf.nn.max_pool(X, ksize=[1, pool_size, pool_size, 1], strides=[1, stride, stride, 1], padding=padding)
+    return tf.nn.max_pool(X, ksize=[1, pool_size, pool_size, 1],
+                          strides=[1, stride, stride, 1], padding=padding)
     
 def main():
     # reset tf graph
@@ -38,7 +39,10 @@ def main():
     test_data = test.images
     test_target = test.labels
     
+    # get number of samples per dataset
     n_train_samples = train.images.shape[0]
+    n_valid_samples = valid.images.shape[0]
+    n_test_samples = test.images.shape[0]
     
     # define input and output
     input_width = 28 # CHANGE TO 56 FOR UPSCALING
@@ -116,7 +120,8 @@ def main():
     W1 = tf.get_default_graph().get_tensor_by_name("fc_1/weight:0")
     W2 = tf.get_default_graph().get_tensor_by_name("fc_2/weight:0")
     W3 = tf.get_default_graph().get_tensor_by_name("output_1/weight:0")
-    reg_loss = tf.reduce_sum(tf.pow(tf.abs(W1),2)) + tf.reduce_sum(tf.pow(tf.abs(W2),2)) + tf.reduce_sum(tf.pow(tf.abs(W3),2))
+    reg_loss = tf.reduce_sum(tf.pow(tf.abs(W1),2)) + tf.reduce_sum(tf.pow(tf.abs(W2),2)) + \
+                            tf.reduce_sum(tf.pow(tf.abs(W3),2))
     cost = cross_entropy + (reg_loss * regularization_term)
     
     # compute predictions and error
@@ -140,15 +145,15 @@ def main():
         valid_errors = []
         
         # calculate number of iterations per epoch
-        iterations = int(n_train_samples / minibatch_size)
+        train_iterations = int(n_train_samples / minibatch_size)
         
         for epoch in range(n_epochs):
             print("--- epoch: {}".format(epoch))
-            # reset cost and error each epoch
+            # reset error each epoch
             epoch_train_error = 0.
             epoch_valid_error = 0.
         
-            for i in range(iterations):
+            for i in range(train_iterations):
                 # Get next batch of training data and labels   
                 train_data_mb, train_label_mb = train.next_batch(minibatch_size)
                 train_mb_cost = cost.eval(feed_dict={X: train_data_mb, y: train_label_mb, keep_prob: 1.0})
@@ -159,23 +164,43 @@ def main():
                 
                 # training operation
                 sess.run(optimizer, feed_dict={X: train_data_mb, y: train_label_mb, keep_prob: keep_probability})
-
-            train_errors.append(epoch_train_error / iterations)
             
-            epoch_valid_error = error.eval(feed_dict={X: valid_data, y: valid_target, keep_prob: 1.0})
-            valid_errors.append(epoch_valid_error)
+            # compute average train epoch error
+            train_errors.append(epoch_train_error / train_iterations)
+            
+            # compute valid epoch error through mini-batches
+            valid_iterations = int(n_valid_samples / minibatch_size)
+            print("valid_iterations: {}".format(valid_iterations))
+            for i in range (valid_iterations):
+                valid_data_mb, valid_label_mb = valid.next_batch(minibatch_size)
+                valid_mb_error = error.eval(feed_dict={X: valid_data_mb, y: valid_label_mb, keep_prob: 1.0})
+                print("valid_mb_error: {}".format(valid_mb_error))
+                epoch_valid_error += valid_mb_error
+            print("epoch_valid_error: {}".format(epoch_valid_error))
+            avg_epoch_valid_error = epoch_valid_error / valid_iterations
+            valid_errors.append(avg_epoch_valid_error)
             
             # save model every 10 epochs
             if(epoch % 10 == 0):
                 save_path = saver.save(sess, "./models/epoch_{}.ckpt".format(epoch))
         
-        test_error = error.eval(feed_dict={X: test_data, y: test_target, keep_prob: 1.0})
-        
-        # print final errors
-        print_utils.print_final_error(train_errors[-1], valid_errors[-1], test_error)
+        # compute test error through mini-batches
+        test_error = 0.
+        test_iterations = int(n_test_samples / minibatch_size)
+        print("test_iterations: {}".format(test_iterations))
+        for i in range (test_iterations):
+            test_data_mb, test_label_mb = test.next_batch(minibatch_size)
+            test_mb_error = error.eval(feed_dict={X: test_data_mb, y: test_label_mb, keep_prob: 1.0})
+            print("test_mb_error: {}".format(test_mb_error))
+            test_error += test_mb_error
+        print("test_error: {}".format(test_error))
+        test_error = test_error / test_iterations
         
         # save final model
         save_path = saver.save(sess, "./models/final.ckpt")
+        
+        # print final errors
+        print_utils.print_final_error(train_errors[-1], valid_errors[-1], test_error)
         
         # plot error vs. epoch
         plot_utils.plot_epoch_errors(train_errors, valid_errors)
