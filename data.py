@@ -1,6 +1,7 @@
 import numpy as np
 from sklearn import preprocessing
 from tensorflow.examples.tutorials.mnist import input_data
+np.random.seed(42)
 
 def load_data_as_array(one_hot=False):
     '''
@@ -24,12 +25,24 @@ def load_data_as_array(one_hot=False):
     else:
         return train_images, train_labels, test_images, test_labels
 
-def load_data():
+def load_data(n_samples_per_class=100):
     fashion_mnist = input_data.read_data_sets('data/fashion', one_hot=True)
     train_data = fashion_mnist.train
     valid_data = fashion_mnist.validation
     test_data = fashion_mnist.test
     
+    subset_idx = np.array([])
+    class_labels = np.argmax(train_data.labels, axis=1)
+    for i in range(10):
+        class_idx = np.squeeze(np.argwhere(class_labels==i))
+        np.random.shuffle(class_idx)
+        class_idx = class_idx[0:n_samples_per_class]
+        subset_idx = np.concatenate((subset_idx, class_idx)).astype(int)
+    np.random.shuffle(subset_idx)
+    train_data._images = train_data._images[subset_idx]
+    train_data._labels = train_data._labels[subset_idx]
+    train_data._num_examples = n_samples_per_class * 10
+
     return train_data, valid_data, test_data
     
 def get_class_labels():

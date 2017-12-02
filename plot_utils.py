@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import tensorflow as tf
 import numpy as np
+import math
 
 def plot_epoch_errors(train_errors, valid_errors, prefix="temp"):
     fig = plt.figure(figsize=(5, 5))
