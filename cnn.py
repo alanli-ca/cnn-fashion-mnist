@@ -6,6 +6,7 @@ import data_augmentor
 import data
 import plot_utils
 import print_utils
+import model_config
 
 np.set_printoptions(precision=3, suppress=True)
 np.random.seed(42)
@@ -44,29 +45,32 @@ def main():
     n_valid_samples = valid.images.shape[0]
     n_test_samples = test.images.shape[0]
     
+    # get model configuration
+    model_configs = model_config.cnn_baseline
+    
     # define input and output
-    input_width = 28 # CHANGE TO 56 FOR UPSCALING
-    n_input = input_width*input_width
-    n_classes = 10
+    input_width = model_configs['input_width']
+    n_input = model_configs['n_input']
+    n_classes = model_configs['n_classes']
     
     # define training hyper-parameters
-    n_epochs = 3
-    minibatch_size = 500
-    learning_rate = 0.002
-    regularization_term = 0.001
-    keep_probability = 0.5
+    n_epochs = model_configs['n_epochs']
+    minibatch_size = model_configs['minibatch_size']
+    learning_rate = model_configs['learning_rate']
+    regularization_term = model_configs['regularization_term']
+    keep_probability = model_configs['keep_probability']
     
     #define conv layer architecture
-    filter_size = 5 # default 5
-    num_filters = 32 # default 32
-    conv_stride = 1 # default 1
-    max_pool_stride = 2 # default 2
-    pool_size = 3 # default 3
-    padding = "VALID"
+    filter_size = model_configs['filter_size']
+    num_filters = model_configs['num_filters']
+    conv_stride = model_configs['conv_stride']
+    max_pool_stride = model_configs['max_pool_stride']
+    pool_size = model_configs['pool_size']
+    padding = model_configs['padding']
     
     # define FC NN architecture
-    fc1_size = 384
-    fc2_size = 192
+    fc1_size = model_configs['fc1_size']
+    fc2_size = model_configs['fc2_size']
 
     # define visualziation parameters
     vis_layers = np.arange(0,8) # selected filter visualization layers
@@ -156,12 +160,10 @@ def main():
             for i in range(train_iterations):
                 # Get next batch of training data and labels   
                 train_data_mb, train_label_mb = train.next_batch(minibatch_size)
-                train_mb_cost = cost.eval(feed_dict={X: train_data_mb, y: train_label_mb, keep_prob: 1.0})
+                # compute error
                 train_mb_error = error.eval(feed_dict={X: train_data_mb, y: train_label_mb, keep_prob: 1.0})
-
                 epoch_train_error += train_mb_error
                 train_iteration_errors.append(train_mb_error)
-                
                 # training operation
                 sess.run(optimizer, feed_dict={X: train_data_mb, y: train_label_mb, keep_prob: keep_probability})
             
@@ -170,13 +172,10 @@ def main():
             
             # compute valid epoch error through mini-batches
             valid_iterations = int(n_valid_samples / minibatch_size)
-            print("valid_iterations: {}".format(valid_iterations))
             for i in range (valid_iterations):
                 valid_data_mb, valid_label_mb = valid.next_batch(minibatch_size)
                 valid_mb_error = error.eval(feed_dict={X: valid_data_mb, y: valid_label_mb, keep_prob: 1.0})
-                print("valid_mb_error: {}".format(valid_mb_error))
                 epoch_valid_error += valid_mb_error
-            print("epoch_valid_error: {}".format(epoch_valid_error))
             avg_epoch_valid_error = epoch_valid_error / valid_iterations
             valid_errors.append(avg_epoch_valid_error)
             
@@ -187,13 +186,10 @@ def main():
         # compute test error through mini-batches
         test_error = 0.
         test_iterations = int(n_test_samples / minibatch_size)
-        print("test_iterations: {}".format(test_iterations))
         for i in range (test_iterations):
             test_data_mb, test_label_mb = test.next_batch(minibatch_size)
             test_mb_error = error.eval(feed_dict={X: test_data_mb, y: test_label_mb, keep_prob: 1.0})
-            print("test_mb_error: {}".format(test_mb_error))
             test_error += test_mb_error
-        print("test_error: {}".format(test_error))
         test_error = test_error / test_iterations
         
         # save final model

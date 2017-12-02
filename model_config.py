@@ -5,7 +5,7 @@ cnn_baseline = {
     'n_classes': 10,
     
     # define training hyper-parameters
-    'n_epochs': 3,
+    'n_epochs': 1,
     'minibatch_size': 500,
     'learning_rate': 0.002,
     'regularization_term': 0.001,
@@ -31,7 +31,7 @@ cnn_2x_scale = {
     'n_classes': 10,
     
     # define training hyper-parameters
-    'n_epochs': 3,
+    'n_epochs': 1,
     'minibatch_size': 500,
     'learning_rate': 0.002,
     'regularization_term': 0.001,
