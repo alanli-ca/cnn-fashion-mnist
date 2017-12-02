@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import tensorflow as tf
 import numpy as np
 
-def plot_epoch_errors(train_errors, valid_errors):
+def plot_epoch_errors(train_errors, valid_errors, prefix="temp"):
     fig = plt.figure(figsize=(5, 5))
 
     ax1 = fig.add_subplot(1, 1, 1)
@@ -15,10 +15,10 @@ def plot_epoch_errors(train_errors, valid_errors):
     ax1.legend()
 
     plt.tight_layout()
-    plt.savefig("./images/{}.png".format("error_vs_epoch"))
+    plt.savefig("./images/{}_error_vs_epoch.png".format(prefix))
     plt.show()
 
-def plot_train_iteration_errors(train_iter_errors):
+def plot_train_iteration_errors(train_iter_errors, prefix="temp"):
     fig = plt.figure(figsize=(5, 5))
 
     ax1 = fig.add_subplot(1, 1, 1)
@@ -30,17 +30,17 @@ def plot_train_iteration_errors(train_iter_errors):
     ax1.legend()
 
     plt.tight_layout()
-    plt.savefig("./images/{}.png".format("error_vs_iteration"))
+    plt.savefig("./images/{}_error_vs_iteration.png".format(prefix))
     plt.show()
     
-def plot_cnn_kernels(vis_layers, W_conv1):
+def plot_cnn_kernels(vis_layers, W_conv1, prefix="temp"):
     fig = plt.figure(figsize=(vis_layers.shape[0], 1))
     for i in range(vis_layers.shape[0]):
         ax = fig.add_subplot(1, vis_layers.shape[0], i+1)
         ax.imshow(tf.squeeze(W_conv1)[:,:,vis_layers[i]].eval(), cmap='gray')
         ax.axis("off")
         
-    plt.savefig("./images/filter_visualization.png")    
+    plt.savefig("./images/{}_filter_visualization.png".format(prefix))
     plt.show()
 
 def plot_images_side_by_side(class_images):

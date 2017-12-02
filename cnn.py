@@ -9,6 +9,7 @@ import model_config
 np.set_printoptions(precision=3, suppress=True)
 np.random.seed(42)
 tf.set_random_seed(42)
+MODEL_NAME = "cnn_baseline"
 
 def weight_variable(shape):
     initial = tf.contrib.layers.xavier_initializer(uniform=False, seed=42)
@@ -179,7 +180,7 @@ def main():
             
             # save model every 10 epochs
             if(epoch % 10 == 0):
-                save_path = saver.save(sess, "./models/epoch_{}.ckpt".format(epoch))
+                save_path = saver.save(sess, "./models/{}_epoch_{}.ckpt".format(MODEL_NAME, epoch))
         
         # compute test error through mini-batches
         test_error = 0.
@@ -191,15 +192,15 @@ def main():
         test_error = test_error / test_iterations
         
         # save final model
-        save_path = saver.save(sess, "./models/final.ckpt")
+        save_path = saver.save(sess, "./models/{}_final.ckpt".format(MODEL_NAME))
         
         # print final errors
         print_utils.print_final_error(train_errors[-1], valid_errors[-1], test_error)
         
         # plot error vs. epoch
-        plot_utils.plot_epoch_errors(train_errors, valid_errors)
-        plot_utils.plot_train_iteration_errors(train_iteration_errors)
-        plot_utils.plot_cnn_kernels(vis_layers, W_conv1)
+        plot_utils.plot_epoch_errors(train_errors, valid_errors, prefix=MODEL_NAME)
+        plot_utils.plot_train_iteration_errors(train_iteration_errors, prefix=MODEL_NAME)
+        plot_utils.plot_cnn_kernels(vis_layers, W_conv1, prefix=MODEL_NAME)
 
 if __name__ == "__main__":
     main()

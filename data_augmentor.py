@@ -1,14 +1,11 @@
 '''
 this module contains various functions to augment a (n x m) array of images
 '''
-
 import numpy as np
-import matplotlib.pyplot as plt
 from skimage import transform
 from skimage import filters
 from skimage import util
 import random
-import idx2numpy
 import math
 
 def plot_images_side_by_side(class_images):

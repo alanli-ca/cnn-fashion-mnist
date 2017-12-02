@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 import numpy as np
 from sklearn import preprocessing
 from tensorflow.examples.tutorials.mnist import input_data
