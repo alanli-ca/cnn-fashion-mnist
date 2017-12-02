@@ -31,7 +31,7 @@ def load_data():
     valid_data = fashion_mnist.valid
     test_data = fashion_mnist.test
     
-    return train, valid, test
+    return train_data, valid_data, test_data
     
 def get_class_labels():
     '''
