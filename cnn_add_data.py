@@ -114,7 +114,7 @@ def main():
 
     # output layer
     with tf.variable_scope("output_1"):
-        W_fc3 = weight_variable([192, n_classes])
+        W_fc3 = weight_variable([fc2_size, n_classes])
         b_fc3 = bias_variable([n_classes])
         y_conv = tf.matmul(h_fc2_dropout, W_fc3) + b_fc3
     
