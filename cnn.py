@@ -1,10 +1,11 @@
 import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
-from sklearn import preprocessing
-from mnist import MNIST
 from tensorflow.examples.tutorials.mnist import input_data
 import data_augmentor
+import data
+import plot_utils
+import print_utils
 
 np.set_printoptions(precision=3, suppress=True)
 np.random.seed(42)
@@ -25,68 +26,45 @@ def conv2d(X, W, stride=1, padding="VALID"):
 
 def max_pool(X, stride=2, pool_size=3, padding="VALID"):
     return tf.nn.max_pool(X, ksize=[1, pool_size, pool_size, 1], strides=[1, stride, stride, 1], padding=padding)
-
-def print_cost_and_error(train_costs, train_errors, test_costs, test_errors):
-    print("final_traing_cost: {0:0.3f} | final_traing_error: {1:0.3f}".format(train_costs[-1], train_errors[-1]))
-    print("final_test_cost: {0:0.3f} | final_test_error: {1:0.3f}".format(test_costs[-1], test_errors[-1]))
-
-def plot_figures(train_costs, train_errors):
     
-    fig = plt.figure(figsize=(10, 5))
-
-    ax1 = fig.add_subplot(1, 2, 1)
-    ax1.plot(train_costs, label="train")
-    ax1.set_xlabel("Epoch")
-    ax1.set_ylabel("Cost")
-    ax1.set_title("Cost vs. Epoch")
-    ax1.legend()
-
-    ax2 = fig.add_subplot(1, 2, 2)
-    ax2.plot(train_errors, label="train")
-    ax2.set_xlabel("Epoch")
-    ax2.set_ylabel("Error")
-    ax2.set_title("Error vs. Epoch")
-    ax2.set_ylim([0, 1])
-    ax2.legend()
-
-    plt.tight_layout()
-    plt.savefig("{}.png".format("cnn"))
-    plt.show()
-
 def main():
     # reset tf graph
     tf.reset_default_graph()
 
-    # load data TODO
-    fashion_mnist = input_data.read_data_sets('data/fashion', one_hot=True)
-    train = fashion_mnist.train
-    test = fashion_mnist.test
-    trainData = fashion_mnist.train.images
-    trainTarget = fashion_mnist.train.labels
-    testData = fashion_mnist.test.images
-    testTarget = fashion_mnist.test.labels
+    # load data
+    train, valid, test = data.load_data()
+    valid_data = valid.images
+    valid_target = valid.labels
+    test_data = test.images
+    test_target = test.labels
     
-    train_idx = np.arange(trainData.shape[0]) 
+    n_train_samples = train.images.shape[0]
     
     # define input and output
-    input_width = 28
+    input_width = 28 # CHANGE TO 56 FOR UPSCALING
     n_input = input_width*input_width
     n_classes = 10
     
-    (n_x, m) = train.images.T.shape
-    
-    # define hyper-parameters
+    # define training hyper-parameters
+    n_epochs = 3
     minibatch_size = 500
+    learning_rate = 0.002
+    regularization_term = 0.001
+    keep_probability = 0.5
+    
+    #define conv layer architecture
     filter_size = 5 # default 5
     num_filters = 32 # default 32
     conv_stride = 1 # default 1
     max_pool_stride = 2 # default 2
     pool_size = 3 # default 3
     padding = "VALID"
-    learning_rate = 0.002
-    regularization_term = 0.001
-    n_epochs = 1
-    keep_probability = 0.5
+    
+    # define FC NN architecture
+    fc1_size = 384
+    fc2_size = 192
+
+    # define visualziation parameters
     vis_layers = np.arange(0,8) # selected filter visualization layers
     
     # define placeholders
@@ -115,15 +93,15 @@ def main():
     
     # fully connected layer 1
     with tf.variable_scope("fc_1"):
-        W_fc1 = weight_variable([max_pool_out_dim*max_pool_out_dim*num_filters, 384])
-        b_fc1 = bias_variable([384])
+        W_fc1 = weight_variable([max_pool_out_dim*max_pool_out_dim*num_filters, fc1_size])
+        b_fc1 = bias_variable([fc1_size])
         h_fc1 = tf.nn.relu(tf.matmul(h_pool1_flat, W_fc1) + b_fc1)
         h_fc1_dropout = tf.nn.dropout(h_fc1, keep_prob=keep_prob)
 
     # fully connected layer 2
     with tf.variable_scope("fc_2"):
-        W_fc2 = weight_variable([384, 192])
-        b_fc2 = bias_variable([192])
+        W_fc2 = weight_variable([fc1_size, fc2_size])
+        b_fc2 = bias_variable([fc2_size])
         h_fc2 = tf.nn.relu(tf.matmul(h_fc1_dropout, W_fc2) + b_fc2)
         h_fc2_dropout = tf.nn.dropout(h_fc2, keep_prob=keep_prob)
 
@@ -141,7 +119,8 @@ def main():
     reg_loss = tf.reduce_sum(tf.pow(tf.abs(W1),2)) + tf.reduce_sum(tf.pow(tf.abs(W2),2)) + tf.reduce_sum(tf.pow(tf.abs(W3),2))
     cost = cross_entropy + (reg_loss * regularization_term)
     
-    # compute error
+    # compute predictions and error
+    prediction = tf.argmax(y_conv, axis=1)
     correct = tf.equal(tf.argmax(y_conv, axis=1), tf.argmax(y, axis=1))
     error = 1 - tf.reduce_mean(tf.cast(correct, tf.float32))
         
@@ -151,54 +130,57 @@ def main():
     # initialize variables and session
     init = tf.global_variables_initializer()
     saver = tf.train.Saver()
+    
     with tf.Session() as sess:
         init.run()
         
         # initialize cost and error variables
-        train_costs = []
+        train_iteration_errors = []
         train_errors = []
-        test_costs = []
-        test_errors = []
+        valid_errors = []
+        
+        # calculate number of iterations per epoch
+        iterations = int(n_train_samples / minibatch_size)
         
         for epoch in range(n_epochs):
             print("--- epoch: {}".format(epoch))
-            epoch_train_cost = 0.
+            # reset cost and error each epoch
             epoch_train_error = 0.
-            num_minibatches = int(m / minibatch_size)
+            epoch_valid_error = 0.
         
-            for i in range(num_minibatches):
-                # Get next batch of training data and labels        
-                X_mb, y_mb = train.next_batch(minibatch_size)
-                mb_train_cost = cost.eval(feed_dict={X: X_mb, y: y_mb, keep_prob: 1.0})
-                mb_train_error = error.eval(feed_dict={X: X_mb, y: y_mb, keep_prob: 1.0})
+            for i in range(iterations):
+                # Get next batch of training data and labels   
+                train_data_mb, train_label_mb = train.next_batch(minibatch_size)
+                train_mb_cost = cost.eval(feed_dict={X: train_data_mb, y: train_label_mb, keep_prob: 1.0})
+                train_mb_error = error.eval(feed_dict={X: train_data_mb, y: train_label_mb, keep_prob: 1.0})
 
-                epoch_train_cost += mb_train_cost
-                epoch_train_error += mb_train_error
+                epoch_train_error += train_mb_error
+                train_iteration_errors.append(train_mb_error)
+                
+                # training operation
+                sess.run(optimizer, feed_dict={X: train_data_mb, y: train_label_mb, keep_prob: keep_probability})
 
-                # training
-                sess.run(optimizer, feed_dict={X: X_mb, y: y_mb, keep_prob: keep_probability})
-
-            train_costs = np.append(train_costs, epoch_train_cost)
-            train_errors = np.append(train_errors, epoch_train_error / num_minibatches)
-
-        # save the model
-        # save_path = saver.save(sess, "./models/cnn_final.ckpt")
+            train_errors.append(epoch_train_error / iterations)
+            
+            epoch_valid_error = error.eval(feed_dict={X: valid_data, y: valid_target, keep_prob: 1.0})
+            valid_errors.append(epoch_valid_error)
+            
+            # save model every 10 epochs
+            if(epoch % 10 == 0):
+                save_path = saver.save(sess, "./models/epoch_{}.ckpt".format(epoch))
         
-        test_costs = np.append(test_costs, cost.eval(feed_dict={X: testData, y: testTarget, keep_prob: 1.0}))
-        test_errors = np.append(test_errors, error.eval(feed_dict={X: testData, y: testTarget, keep_prob: 1.0}))
+        test_error = error.eval(feed_dict={X: test_data, y: test_target, keep_prob: 1.0})
+        
+        # print final errors
+        print_utils.print_final_error(train_errors[-1], valid_errors[-1], test_error)
+        
+        # save final model
+        save_path = saver.save(sess, "./models/final.ckpt")
+        
+        # plot error vs. epoch
+        plot_utils.plot_epoch_errors(train_errors, valid_errors)
+        plot_utils.plot_train_iteration_errors(train_iteration_errors)
+        plot_utils.plot_cnn_kernels(vis_layers, W_conv1)
 
-        print_cost_and_error(train_costs, train_errors, test_costs, test_errors)
-        
-        # plot loss and error vs. epoch
-        plot_figures(train_costs, train_errors)
-        
-        # plot cnn kernels
-        fig = plt.figure(figsize=(8, 1))
-        for i in range(vis_layers.shape[0]):
-            ax = fig.add_subplot(1, 8, i+1)
-            ax.imshow(tf.squeeze(W_conv1)[:,:,vis_layers[i]].eval(), cmap='gray')
-            ax.axis("off")
-        plt.savefig("filter_viz.png")    
-        plt.show()
 if __name__ == "__main__":
     main()

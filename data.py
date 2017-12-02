@@ -28,7 +28,7 @@ def load_data_as_array(one_hot=False):
 def load_data():
     fashion_mnist = input_data.read_data_sets('data/fashion', one_hot=True)
     train_data = fashion_mnist.train
-    valid_data = fashion_mnist.valid
+    valid_data = fashion_mnist.validation
     test_data = fashion_mnist.test
     
     return train_data, valid_data, test_data
