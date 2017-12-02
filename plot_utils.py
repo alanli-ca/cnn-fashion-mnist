@@ -42,3 +42,21 @@ def plot_cnn_kernels(vis_layers, W_conv1):
         
     plt.savefig("./images/filter_visualization.png")    
     plt.show()
+
+def plot_images_side_by_side(class_images):
+    '''
+    Plot each of the images corresponding to each class side by side in grayscale.
+    inputs:
+        1. (n x m) n samples of images, each with m features
+    output:
+        1. None
+    '''
+    class_images = class_images.reshape(class_images.shape[0], -1)
+    w_dim = int(math.sqrt(class_images.shape[-1]))
+    
+    plt.figure(figsize=(20,5))
+    img = class_images.reshape(-1, w_dim, w_dim)
+    all_concat = np.concatenate(img, 1)
+    plt.imshow(all_concat, cmap='Greys')
+    plt.axis('off')
+    plt.show()

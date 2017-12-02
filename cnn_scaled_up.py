@@ -1,7 +1,5 @@
 import numpy as np
 import tensorflow as tf
-import matplotlib.pyplot as plt
-from tensorflow.examples.tutorials.mnist import input_data
 import data_augmentor
 import data
 import plot_utils
@@ -46,7 +44,7 @@ def main():
     n_test_samples = test.images.shape[0]
     
     # get model configuration
-    model_configs = model_config.cnn_baseline
+    model_configs = model_config.cnn_2x_scale
     
     # define input and output
     input_width = model_configs['input_width']
@@ -160,6 +158,8 @@ def main():
             for i in range(train_iterations):
                 # Get next batch of training data and labels   
                 train_data_mb, train_label_mb = train.next_batch(minibatch_size)
+                # augment training data
+                train_data_mb = data_augmentor.rescale_augmentor(train_data_mb)
                 # compute error
                 train_mb_error = error.eval(feed_dict={X: train_data_mb, y: train_label_mb, keep_prob: 1.0})
                 epoch_train_error += train_mb_error
@@ -174,6 +174,8 @@ def main():
             valid_iterations = int(n_valid_samples / minibatch_size)
             for i in range (valid_iterations):
                 valid_data_mb, valid_label_mb = valid.next_batch(minibatch_size)
+                # augment valid data
+                valid_data_mb = data_augmentor.rescale_augmentor(valid_data_mb)
                 valid_mb_error = error.eval(feed_dict={X: valid_data_mb, y: valid_label_mb, keep_prob: 1.0})
                 epoch_valid_error += valid_mb_error
             avg_epoch_valid_error = epoch_valid_error / valid_iterations
@@ -188,6 +190,8 @@ def main():
         test_iterations = int(n_test_samples / minibatch_size)
         for i in range (test_iterations):
             test_data_mb, test_label_mb = test.next_batch(minibatch_size)
+            # augment test data
+            test_data_mb = data_augmentor.rescale_augmentor(test_data_mb)
             test_mb_error = error.eval(feed_dict={X: test_data_mb, y: test_label_mb, keep_prob: 1.0})
             test_error += test_mb_error
         test_error = test_error / test_iterations
