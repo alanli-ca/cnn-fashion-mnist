@@ -202,6 +202,7 @@ def main():
         
         # print final errors
         print_utils.print_final_error(train_errors[-1], valid_errors[-1], test_error)
+        print_utils.write_errors_to_file(train_errors, valid_errors, test_error, model_configs, MODEL_NAME)
         
         # plot error vs. epoch
         plot_utils.plot_epoch_errors(train_errors, valid_errors, prefix=MODEL_NAME)

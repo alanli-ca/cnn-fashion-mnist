@@ -65,7 +65,7 @@ def gaussian_noise_augmentor(dataset):
         
     return flatten_dataset(augmented_dataset)
 
-def possion_noise_augmentor(dataset):
+def poisson_noise_augmentor(dataset):
     '''
     applies the possion noise to the dataset
     inputs:

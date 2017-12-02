@@ -6,10 +6,10 @@ cnn_baseline = {
     
     # define training hyper-parameters
     'n_epochs': 1,
-    'minibatch_size': 500,
-    'learning_rate': 0.002,
-    'regularization_term': 0.001,
-    'keep_probability': 0.5,
+    'minibatch_size': 500, # default 500
+    'learning_rate': 0.001, # default 0.002
+    'regularization_term': 0.0001, # default 0.001
+    'keep_probability': 1.0, # default 0.5
     
     #define conv layer architecture
     'filter_size': 5, # default 5
@@ -31,7 +31,7 @@ cnn_2x_scale = {
     'n_classes': 10,
     
     # define training hyper-parameters
-    'n_epochs': 1,
+    'n_epochs': 20,
     'minibatch_size': 500,
     'learning_rate': 0.002,
     'regularization_term': 0.001,

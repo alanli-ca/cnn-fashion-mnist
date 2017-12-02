@@ -163,8 +163,29 @@ def main():
                 train_mb_error = error.eval(feed_dict={X: train_data_mb, y: train_label_mb, keep_prob: 1.0})
                 epoch_train_error += train_mb_error
                 train_iteration_errors.append(train_mb_error)
-                # training operation
+                
+                # training operation - original data
                 sess.run(optimizer, feed_dict={X: train_data_mb, y: train_label_mb, keep_prob: keep_probability})
+                
+                # augment dataset 1
+                train_data_mb_guassian_noise = data_augmentor.gaussian_noise_augmentor(train_data_mb)
+                # training operation - guassian noise data
+                sess.run(optimizer, feed_dict={X: train_data_mb_guassian_noise, y: train_label_mb, keep_prob: keep_probability})
+                
+                # augment dataset 2
+                train_data_mb_poisson_noise = data_augmentor.poisson_noise_augmentor(train_data_mb)
+                # training operation - guassian noise data
+                sess.run(optimizer, feed_dict={X: train_data_mb_poisson_noise, y: train_label_mb, keep_prob: keep_probability})
+                
+                # augment dataset 3
+                train_data_mb_fliplr = data_augmentor.fliplr_augmentor(train_data_mb)
+                # training operation - fliplr data
+                sess.run(optimizer, feed_dict={X: train_data_mb_fliplr, y: train_label_mb, keep_prob: keep_probability})
+                
+                # augment dataset 4
+                train_data_mb_swirl_rotate = data_augmentor.swirl_rotate_augmentor(train_data_mb)
+                # training operation - swirl rotate data
+                sess.run(optimizer, feed_dict={X: train_data_mb_swirl_rotate, y: train_label_mb, keep_prob: keep_probability})
             
             # compute average train epoch error
             train_errors.append(epoch_train_error / train_iterations)

@@ -4,3 +4,4 @@ __pycache__
 models/
 images/
 *.DS_Store
+results/
