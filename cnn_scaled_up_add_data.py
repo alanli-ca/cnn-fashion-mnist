@@ -34,6 +34,10 @@ def main():
 
     # load data
     train, valid, test = data.load_data(n_train_samples_per_class=100)
+    train._images = data.augment_data(train.images, augment_type="SCALE_UP")
+    valid._images = data.augment_data(valid.images, augment_type="SCALE_UP")
+    test._images = data.augment_data(test.images, augment_type="SCALE_UP")
+
     train_gn = train_pn = train_flr = train_sr = train
     train_gn._images = data.augment_data(train_gn.images, augment_type="GAUSSIAN_NOISE")
     train_pn._images = data.augment_data(train_pn.images, augment_type="POISSON_NOISE")
@@ -46,7 +50,7 @@ def main():
     n_test_samples = test.images.shape[0]
     
     # get model configuration
-    model_configs = model_config.cnn_baseline
+    model_configs = model_config.cnn_2x_scale
     
     # define input and output
     input_width = model_configs['input_width']

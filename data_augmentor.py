@@ -7,6 +7,8 @@ from skimage import filters
 from skimage import util
 import random
 import math
+import warnings
+warnings.filterwarnings("ignore")
 
 def plot_images_side_by_side(class_images):
     '''

@@ -33,11 +33,7 @@ def main():
     tf.reset_default_graph()
 
     # load data
-    train, valid, test = data.load_data(n_samples_per_class=100)
-    valid_data = valid.images
-    valid_target = valid.labels
-    test_data = test.images
-    test_target = test.labels
+    train, valid, test = data.load_data(n_train_samples_per_class=100)
     
     # get number of samples per dataset
     n_train_samples = train.images.shape[0]

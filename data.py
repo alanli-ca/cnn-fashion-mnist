@@ -1,6 +1,7 @@
 import numpy as np
 from sklearn import preprocessing
 from tensorflow.examples.tutorials.mnist import input_data
+import data_augmentor
 np.random.seed(42)
 
 def load_data_as_array(one_hot=False):
@@ -25,7 +26,7 @@ def load_data_as_array(one_hot=False):
     else:
         return train_images, train_labels, test_images, test_labels
 
-def load_data(n_samples_per_class=100):
+def load_data(n_train_samples_per_class=100):
     fashion_mnist = input_data.read_data_sets('data/fashion', one_hot=True)
     train_data = fashion_mnist.train
     valid_data = fashion_mnist.validation
@@ -36,14 +37,36 @@ def load_data(n_samples_per_class=100):
     for i in range(10):
         class_idx = np.squeeze(np.argwhere(class_labels==i))
         np.random.shuffle(class_idx)
-        class_idx = class_idx[0:n_samples_per_class]
+        class_idx = class_idx[0:n_train_samples_per_class]
         subset_idx = np.concatenate((subset_idx, class_idx)).astype(int)
     np.random.shuffle(subset_idx)
     train_data._images = train_data._images[subset_idx]
     train_data._labels = train_data._labels[subset_idx]
-    train_data._num_examples = n_samples_per_class * 10
+    train_data._num_examples = n_train_samples_per_class * 10
 
     return train_data, valid_data, test_data
+
+def augment_data(dataset, augment_type=None):
+    if augment_type is None:
+        raise Exception("augment_type is not provided")
+    elif augment_type == "GAUSSIAN_FILTER":
+        return data_augmentor.gaussian_filter_augmentor(dataset)
+    elif augment_type == "GAUSSIAN_NOISE":
+        return data_augmentor.gaussian_noise_augmentor(dataset)
+    elif augment_type == "POISSON_NOISE":
+        return data_augmentor.poisson_noise_augmentor(dataset)
+    elif augment_type == "FLIP_LR":
+        return data_augmentor.fliplr_augmentor(dataset)
+    elif augment_type == "SWIRL_ROTATE":
+        return data_augmentor.swirl_rotate_augmentor(dataset)
+    elif augment_type == "SCALE_UP":
+        return data_augmentor.rescale_augmentor(dataset)
+    elif augment_type == "PYRAMID_EXPAND":
+        return data_augmentor.pyramid_expand_augmentor(dataset)
+    else:
+        raise Exception("augment_type must be one of: GAUSSIAN_FILTER, GAUSSIAN_NOISE " +
+        "POISSON_NOISE, FLIP_LR, SWIRL_ROTATE, PYRAMID_EXPAND")
+    
     
 def get_class_labels():
     '''

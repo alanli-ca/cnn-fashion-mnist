@@ -33,11 +33,10 @@ def main():
     tf.reset_default_graph()
 
     # load data
-    train, valid, test = data.load_data(n_samples_per_class=100)
-    valid_data = valid.images
-    valid_target = valid.labels
-    test_data = test.images
-    test_target = test.labels
+    train, valid, test = data.load_data(n_train_samples_per_class=100)
+    train._images = data.augment_data(train.images, augment_type="SCALE_UP")
+    valid._images = data.augment_data(valid.images, augment_type="SCALE_UP")
+    test._images = data.augment_data(test.images, augment_type="SCALE_UP")
     
     # get number of samples per dataset
     n_train_samples = train.images.shape[0]
@@ -159,8 +158,6 @@ def main():
             for i in range(train_iterations):
                 # Get next batch of training data and labels   
                 train_data_mb, train_label_mb = train.next_batch(minibatch_size)
-                # augment training data
-                train_data_mb = data_augmentor.rescale_augmentor(train_data_mb)
                 # compute error
                 train_mb_error = error.eval(feed_dict={X: train_data_mb, y: train_label_mb, keep_prob: 1.0})
                 epoch_train_error += train_mb_error
@@ -175,8 +172,6 @@ def main():
             valid_iterations = int(n_valid_samples / minibatch_size)
             for i in range (valid_iterations):
                 valid_data_mb, valid_label_mb = valid.next_batch(minibatch_size)
-                # augment valid data
-                valid_data_mb = data_augmentor.rescale_augmentor(valid_data_mb)
                 valid_mb_error = error.eval(feed_dict={X: valid_data_mb, y: valid_label_mb, keep_prob: 1.0})
                 epoch_valid_error += valid_mb_error
             avg_epoch_valid_error = epoch_valid_error / valid_iterations
@@ -191,8 +186,6 @@ def main():
         test_iterations = int(n_test_samples / minibatch_size)
         for i in range (test_iterations):
             test_data_mb, test_label_mb = test.next_batch(minibatch_size)
-            # augment test data
-            test_data_mb = data_augmentor.rescale_augmentor(test_data_mb)
             test_mb_error = error.eval(feed_dict={X: test_data_mb, y: test_label_mb, keep_prob: 1.0})
             test_error += test_mb_error
         test_error = test_error / test_iterations
