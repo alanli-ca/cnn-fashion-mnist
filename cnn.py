@@ -147,7 +147,8 @@ def main():
         train_iterations = int(n_train_samples / minibatch_size)
         
         for epoch in range(n_epochs):
-            print("--- epoch: {}".format(epoch))
+            if(epoch % 10 == 0):
+                print("--- epoch: {}".format(epoch))
             # reset error each epoch
             epoch_train_error = 0.
             epoch_valid_error = 0.
@@ -173,10 +174,6 @@ def main():
                 epoch_valid_error += valid_mb_error
             avg_epoch_valid_error = epoch_valid_error / valid_iterations
             valid_errors.append(avg_epoch_valid_error)
-            
-            # save model every 10 epochs
-            if(epoch % 10 == 0):
-                save_path = saver.save(sess, "./models/{}_epoch_{}.ckpt".format(MODEL_NAME, epoch))
         
         # compute test error through mini-batches
         test_error = 0.
