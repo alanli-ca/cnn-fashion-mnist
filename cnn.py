@@ -32,8 +32,13 @@ def main():
     # reset tf graph
     tf.reset_default_graph()
 
+    # get model configuration
+    model_configs = model_config.cnn_baseline
+    
     # load data
-    train, valid, test = data.load_data(n_train_samples_per_class=100)
+    train, valid, test =\
+    data.load_data(n_train_samples_per_class=model_configs['n_train_samples_per_class'],
+                     classes=np.asarray(model_configs['classes']))
     
     # get number of samples per dataset
     n_train_samples = train.images.shape[0]
@@ -46,7 +51,7 @@ def main():
     # define input and output
     input_width = model_configs['input_width']
     n_input = model_configs['n_input']
-    n_classes = model_configs['n_classes']
+    n_classes = np.asarray(model_configs['classes']).shape[0]
     
     # define training hyper-parameters
     n_epochs = model_configs['n_epochs']

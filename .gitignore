@@ -5,3 +5,4 @@ models/
 images/
 *.DS_Store
 results/
+temp/

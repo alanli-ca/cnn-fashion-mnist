@@ -63,7 +63,7 @@ def gaussian_noise_augmentor(dataset):
     augmented_dataset = np.zeros((n_samples, img_width, img_width))
     
     for i in range(n_samples):
-        augmented_dataset[i] = util.random_noise(dataset[i,:,:], mode='gaussian')
+        augmented_dataset[i] = util.random_noise(dataset[i,:,:], mode='gaussian', var=0.005)
         
     return flatten_dataset(augmented_dataset)
 

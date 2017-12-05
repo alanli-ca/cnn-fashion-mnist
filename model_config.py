@@ -2,14 +2,15 @@ cnn_baseline = {
     # define input and output
     'input_width': 28,
     'n_input': 784,
-    'n_classes': 10,
+    'classes': [1, 4, 5, 8, 9], # [1, 4, 5, 8, 9] reduced set w/o ambiguity
+    'n_train_samples_per_class': 1,
     
     # define training hyper-parameters
-    'n_epochs': 100,
-    'minibatch_size': 500, # default 500
+    'n_epochs': 30,
+    'minibatch_size': 50, # default 500
     'learning_rate': 0.001, # default 0.002
-    'regularization_term': 0.0001, # default 0.001
-    'keep_probability': 1.0, # default 0.5
+    'regularization_term': 0.01, # default 0.001
+    'keep_probability': 0.5, # default 0.5
     
     #define conv layer architecture
     'filter_size': 5, # default 5
@@ -28,7 +29,8 @@ cnn_2x_scale = {
     # define input and output
     'input_width': 56,
     'n_input': 3136,
-    'n_classes': 10,
+    'classes': [1, 4, 5, 8, 9], # [1, 4, 5, 8, 9] reduced set w/o ambiguity
+    'n_train_samples_per_class': 100,
     
     # define training hyper-parameters
     'n_epochs': 100,

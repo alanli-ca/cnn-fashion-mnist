@@ -1,36 +1,39 @@
 import numpy as np
 from sklearn import preprocessing
 from tensorflow.examples.tutorials.mnist import input_data
+import tensorflow as tf
 import data_augmentor
 np.random.seed(42)
+tf.set_random_seed(42)
 
-def load_data_as_array(one_hot=False):
-    '''
-    loads and transforms the training and test data and labels as a numpy array
+# def load_data_as_array(one_hot=False):
+#     '''
+#     loads and transforms the training and test data and labels as a numpy array
     
-    input: none
-    output: training images, training labels, test images, test labels - all as numpy array
-    '''
-    data = MNIST('./data/fashion')
-    train_images, train_labels = data.load_training()
-    train_images, train_labels = np.asarray(train_images, dtype=np.int32), np.asarray(train_labels, dtype=np.int32)
-    test_images, test_labels = data.load_testing()    
-    test_images, test_labels = np.asarray(test_images, dtype=np.int32), np.asarray(test_labels, dtype=np.int32)
+#     input: none
+#     output: training images, training labels, test images, test labels - all as numpy array
+#     '''
+#     data = MNIST('./data/fashion')
+#     train_images, train_labels = data.load_training()
+#     train_images, train_labels = np.asarray(train_images, dtype=np.int32), np.asarray(train_labels, dtype=np.int32)
+#     test_images, test_labels = data.load_testing()    
+#     test_images, test_labels = np.asarray(test_images, dtype=np.int32), np.asarray(test_labels, dtype=np.int32)
     
-    if one_hot==True:
-        label_binarizer = preprocessing.LabelBinarizer()
-        label_binarizer.fit(np.arange(10))
-        train_labels_one_hot = label_binarizer.transform(train_labels)
-        test_labels_one_hot = label_binarizer.transform(test_labels)
-        return train_images, train_labels_one_hot, test_images, test_labels_one_hot
-    else:
-        return train_images, train_labels, test_images, test_labels
+#     if one_hot==True:
+#         label_binarizer = preprocessing.LabelBinarizer()
+#         label_binarizer.fit(np.arange(10))
+#         train_labels_one_hot = label_binarizer.transform(train_labels)
+#         test_labels_one_hot = label_binarizer.transform(test_labels)
+#         return train_images, train_labels_one_hot, test_images, test_labels_one_hot
+#     else:
+#         return train_images, train_labels, test_images, test_labels
 
-def load_data(n_train_samples_per_class=100):
-    fashion_mnist = input_data.read_data_sets('data/fashion', one_hot=True)
+def load_data(n_train_samples_per_class=100, classes=np.arange(10)):
+    fashion_mnist = input_data.read_data_sets('data/fashion', one_hot=True, seed=42)
     train_data = fashion_mnist.train
     valid_data = fashion_mnist.validation
     test_data = fashion_mnist.test
+    classes = classes
     
     subset_idx = np.array([])
     class_labels = np.argmax(train_data.labels, axis=1)
@@ -44,6 +47,20 @@ def load_data(n_train_samples_per_class=100):
     train_data._labels = train_data._labels[subset_idx]
     train_data._num_examples = n_train_samples_per_class * 10
 
+    train_truncated_idx = np.squeeze(np.argwhere(np.in1d(np.argmax(train_data.labels, axis=1), classes))).astype(int)
+    valid_truncated_idx = np.squeeze(np.argwhere(np.in1d(np.argmax(valid_data.labels, axis=1), classes))).astype(int)
+    test_truncated_idx = np.squeeze(np.argwhere(np.in1d(np.argmax(test_data.labels, axis=1), classes))).astype(int)
+
+    train_data._images = train_data._images[train_truncated_idx]
+    train_data._labels = train_data._labels[train_truncated_idx]
+    train_data._num_examples = int(n_train_samples_per_class * classes.shape[0])
+    valid_data._images = valid_data._images[valid_truncated_idx]
+    valid_data._labels = valid_data._labels[valid_truncated_idx]
+    valid_data._num_examples = int(valid_data.num_examples * classes.shape[0]/10)
+    test_data._images = test_data._images[test_truncated_idx]
+    test_data._labels = test_data._labels[test_truncated_idx]
+    test_data._num_examples = int(test_data.num_examples * classes.shape[0]/10)
+    
     return train_data, valid_data, test_data
 
 def augment_data(dataset, augment_type=None):

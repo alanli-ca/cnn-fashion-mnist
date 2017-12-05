@@ -31,27 +31,44 @@ def max_pool(X, stride=2, pool_size=3, padding="VALID"):
 def main():
     # reset tf graph
     tf.reset_default_graph()
+    
+    # get model configuration
+    model_configs = model_config.cnn_baseline
 
     # load data
-    train, valid, test = data.load_data(n_train_samples_per_class=100)
-    train_gn = train_pn = train_flr = train_sr = train
-    train_gn._images = data.augment_data(train_gn.images, augment_type="GAUSSIAN_NOISE")
-    train_pn._images = data.augment_data(train_pn.images, augment_type="POISSON_NOISE")
-    train_flr._images = data.augment_data(train_flr.images, augment_type="FLIP_LR")
-    train_sr._images = data.augment_data(train_sr.images, augment_type="SWIRL_ROTATE")
+    train, valid, test =\
+    data.load_data(n_train_samples_per_class=model_config.cnn_baseline['n_train_samples_per_class'],
+                  classes=np.asarray(model_configs['classes']))
     
+    train_gn, valid_gn, test_gn=\
+    data.load_data(n_train_samples_per_class=model_config.cnn_baseline['n_train_samples_per_class'],
+                  classes=np.asarray(model_configs['classes']))
+    train_gn._images = data.augment_data(train_gn.images, augment_type="GAUSSIAN_NOISE")
+    
+    train_pn, valid_pn, test_pn=\
+    data.load_data(n_train_samples_per_class=model_config.cnn_baseline['n_train_samples_per_class'],
+                  classes=np.asarray(model_configs['classes']))
+    train_pn._images = data.augment_data(train_pn.images, augment_type="POISSON_NOISE")
+    
+    train_flr, valid_flr, test_flr=\
+    data.load_data(n_train_samples_per_class=model_config.cnn_baseline['n_train_samples_per_class'],
+                  classes=np.asarray(model_configs['classes']))
+    train_flr._images = data.augment_data(train_flr.images, augment_type="FLIP_LR")
+
+    train_sr, valid_sr, test_sr=\
+    data.load_data(n_train_samples_per_class=model_config.cnn_baseline['n_train_samples_per_class'],
+                  classes=np.asarray(model_configs['classes']))
+    train_sr._images = data.augment_data(train_sr.images, augment_type="SWIRL_ROTATE")
+
     # get number of samples per dataset
     n_train_samples = train.images.shape[0]
     n_valid_samples = valid.images.shape[0]
     n_test_samples = test.images.shape[0]
     
-    # get model configuration
-    model_configs = model_config.cnn_baseline
-    
     # define input and output
     input_width = model_configs['input_width']
     n_input = model_configs['n_input']
-    n_classes = model_configs['n_classes']
+    n_classes = np.asarray(model_configs['classes']).shape[0]
     
     # define training hyper-parameters
     n_epochs = model_configs['n_epochs']
