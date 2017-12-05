@@ -34,6 +34,7 @@ def load_data(n_train_samples_per_class=100, classes=np.arange(10)):
     valid_data = fashion_mnist.validation
     test_data = fashion_mnist.test
     classes = classes
+    labels_keep = np.asarray([x for x in range(10) if x not in classes])
     
     subset_idx = np.array([])
     class_labels = np.argmax(train_data.labels, axis=1)
@@ -52,13 +53,13 @@ def load_data(n_train_samples_per_class=100, classes=np.arange(10)):
     test_truncated_idx = np.squeeze(np.argwhere(np.in1d(np.argmax(test_data.labels, axis=1), classes))).astype(int)
 
     train_data._images = train_data._images[train_truncated_idx]
-    train_data._labels = train_data._labels[train_truncated_idx]
+    train_data._labels = np.delete(train_data._labels[train_truncated_idx], labels_keep, axis=1)
     train_data._num_examples = int(n_train_samples_per_class * classes.shape[0])
     valid_data._images = valid_data._images[valid_truncated_idx]
-    valid_data._labels = valid_data._labels[valid_truncated_idx]
+    valid_data._labels = np.delete(valid_data._labels[valid_truncated_idx], labels_keep, axis=1)
     valid_data._num_examples = int(valid_data.num_examples * classes.shape[0]/10)
     test_data._images = test_data._images[test_truncated_idx]
-    test_data._labels = test_data._labels[test_truncated_idx]
+    test_data._labels = np.delete(test_data._labels[test_truncated_idx], labels_keep, axis=1)
     test_data._num_examples = int(test_data.num_examples * classes.shape[0]/10)
     
     return train_data, valid_data, test_data

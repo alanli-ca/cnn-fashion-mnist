@@ -3,7 +3,7 @@ cnn_baseline = {
     'input_width': 28,
     'n_input': 784,
     'classes': [1, 4, 5, 8, 9], # [1, 4, 5, 8, 9] reduced set w/o ambiguity
-    'n_train_samples_per_class': 1,
+    'n_train_samples_per_class': 100,
     
     # define training hyper-parameters
     'n_epochs': 30,
