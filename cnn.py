@@ -147,6 +147,7 @@ def main():
         train_iteration_errors = []
         train_errors = []
         valid_errors = []
+        test_errors = []
         
         # calculate number of iterations per epoch
         train_iterations = int(n_train_samples / minibatch_size)
@@ -157,6 +158,7 @@ def main():
             # reset error each epoch
             epoch_train_error = 0.
             epoch_valid_error = 0.
+            epoch_test_error = 0.
         
             for i in range(train_iterations):
                 # Get next batch of training data and labels   
@@ -179,22 +181,24 @@ def main():
                 epoch_valid_error += valid_mb_error
             avg_epoch_valid_error = epoch_valid_error / valid_iterations
             valid_errors.append(avg_epoch_valid_error)
-        
-        # compute test error through mini-batches
-        test_error = 0.
-        test_iterations = int(n_test_samples / minibatch_size)
-        for i in range (test_iterations):
-            test_data_mb, test_label_mb = test.next_batch(minibatch_size)
-            test_mb_error = error.eval(feed_dict={X: test_data_mb, y: test_label_mb, keep_prob: 1.0})
-            test_error += test_mb_error
-        test_error = test_error / test_iterations
+
+            # compute test epoch error through mini-batches
+            test_iterations = int(n_test_samples / minibatch_size)
+            for i in range (test_iterations):
+                test_data_mb, test_label_mb = test.next_batch(minibatch_size)
+                test_mb_error = error.eval(feed_dict={X: test_data_mb, y: test_label_mb, keep_prob: 1.0})
+                epoch_test_error += test_mb_error
+            avg_epoch_test_error = epoch_test_error / test_iterations
+            test_errors.append(avg_epoch_test_error)
         
         # save final model
         save_path = saver.save(sess, "./models/{}_final.ckpt".format(MODEL_NAME))
         
         # print final errors
-        print_utils.print_final_error(train_errors[-1], valid_errors[-1], test_error)
-        print_utils.write_errors_to_file(train_errors, valid_errors, test_error, model_configs, MODEL_NAME)
+        print_utils.print_final_error(train_errors[-1], valid_errors[-1], test_errors[-1])
+        # print test error based on best valid epoch
+        print_utils.print_best_valid_epoch(train_errors, valid_errors, test_errors)
+        print_utils.write_errors_to_file(train_errors, valid_errors, test_errors, model_configs, MODEL_NAME)
         
         # plot error vs. epoch
         plot_utils.plot_epoch_errors(train_errors, valid_errors, prefix=MODEL_NAME)

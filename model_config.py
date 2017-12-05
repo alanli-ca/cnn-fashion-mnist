@@ -6,7 +6,7 @@ cnn_baseline = {
     'n_train_samples_per_class': 100,
     
     # define training hyper-parameters
-    'n_epochs': 30,
+    'n_epochs': 10,
     'minibatch_size': 50, # default 500
     'learning_rate': 0.001, # default 0.002
     'regularization_term': 0.01, # default 0.001
