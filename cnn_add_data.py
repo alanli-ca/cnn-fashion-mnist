@@ -31,34 +31,36 @@ def max_pool(X, stride=2, pool_size=3, padding="VALID"):
 def main():
     # reset tf graph
     tf.reset_default_graph()
-    
+
     # get model configuration
     model_configs = model_config.cnn_baseline
 
     # load data
     train, valid, test =\
-    data.load_data(n_train_samples_per_class=model_config.cnn_baseline['n_train_samples_per_class'],
+    data.load_data_with_augmentation(n_train_samples_per_class=model_configs['n_train_samples_per_class'],
                   classes=np.asarray(model_configs['classes']))
-    
-    train_gn, valid_gn, test_gn=\
-    data.load_data(n_train_samples_per_class=model_config.cnn_baseline['n_train_samples_per_class'],
-                  classes=np.asarray(model_configs['classes']))
-    train_gn._images = data.augment_data(train_gn.images, augment_type="GAUSSIAN_NOISE")
-    
-    train_pn, valid_pn, test_pn=\
-    data.load_data(n_train_samples_per_class=model_config.cnn_baseline['n_train_samples_per_class'],
-                  classes=np.asarray(model_configs['classes']))
-    train_pn._images = data.augment_data(train_pn.images, augment_type="POISSON_NOISE")
-    
-    train_flr, valid_flr, test_flr=\
-    data.load_data(n_train_samples_per_class=model_config.cnn_baseline['n_train_samples_per_class'],
-                  classes=np.asarray(model_configs['classes']))
-    train_flr._images = data.augment_data(train_flr.images, augment_type="FLIP_LR")
 
-    train_sr, valid_sr, test_sr=\
-    data.load_data(n_train_samples_per_class=model_config.cnn_baseline['n_train_samples_per_class'],
-                  classes=np.asarray(model_configs['classes']))
-    train_sr._images = data.augment_data(train_sr.images, augment_type="SWIRL_ROTATE")
+    train_shift = data_augmentor.data_preprocessing_augmentor(train, random_shift=True, random_rotation=False,\
+                                random_shear=False, random_zoom=False)
+    train_rotate = data_augmentor.data_preprocessing_augmentor(train, random_shift=False, random_rotation=True,\
+                                random_shear=False, random_zoom=False)
+    train_shear = data_augmentor.data_preprocessing_augmentor(train, random_shift=False, random_rotation=False,\
+                                random_shear=True, random_zoom=False)
+    train_zoom = data_augmentor.data_preprocessing_augmentor(train, random_shift=False, random_rotation=False,\
+                                random_shear=False, random_zoom=True)
+
+    print("original set")
+    plot_utils.plot_images_side_by_side(train.images[0:10,:], prefix="original_train")
+    plot_utils.plot_images_side_by_side(valid.images[0:10,:], prefix="original_valid")
+    plot_utils.plot_images_side_by_side(test.images[0:10,:], prefix="original_test")
+    print("train_shift")
+    plot_utils.plot_images_side_by_side(train_shift.images[0:10,:], prefix="train_shift")
+    print("train_rotate")
+    plot_utils.plot_images_side_by_side(train_rotate.images[0:10,:], prefix="train_rotate")
+    print("train_shear")
+    plot_utils.plot_images_side_by_side(train_shear.images[0:10,:], prefix="train_shear")
+    print("train_zoom")
+    plot_utils.plot_images_side_by_side(train_zoom.images[0:10,:], prefix="train_zoom")
 
     # get number of samples per dataset
     n_train_samples = train.images.shape[0]
@@ -189,24 +191,24 @@ def main():
                 sess.run(optimizer, feed_dict={X: train_data_mb, y: train_label_mb, keep_prob: keep_probability})
                 
                 # Get next batch of gaussian noise training data and labels
-                train_gn_data_mb, train_gn_label_mb = train_gn.next_batch(minibatch_size)
+                train_shift_data_mb, train_shift_label_mb = train_shift.next_batch(minibatch_size)
                 # training operation - guassian noise data
-                sess.run(optimizer, feed_dict={X: train_gn_data_mb, y: train_gn_label_mb, keep_prob: keep_probability})
+                sess.run(optimizer, feed_dict={X: train_shift_data_mb, y: train_shift_label_mb, keep_prob: keep_probability})
                 
                 # Get next batch of poisson noise training data and labels
-                train_pn_data_mb, train_pn_label_mb = train_pn.next_batch(minibatch_size)
+                train_rotate_data_mb, train_rotate_label_mb = train_rotate.next_batch(minibatch_size)
                 # training operation - poisson noise data
-                sess.run(optimizer, feed_dict={X: train_pn_data_mb, y: train_pn_label_mb, keep_prob: keep_probability})
+                sess.run(optimizer, feed_dict={X: train_rotate_data_mb, y: train_rotate_label_mb, keep_prob: keep_probability})
                 
                 # Get next batch of flip left-right training data and labels
-                train_flr_data_mb, train_flr_label_mb = train_flr.next_batch(minibatch_size)
+                train_shear_data_mb, train_shear_label_mb = train_shear.next_batch(minibatch_size)
                 # training operation - flip left-right noise data
-                sess.run(optimizer, feed_dict={X: train_flr_data_mb, y: train_flr_label_mb, keep_prob: keep_probability})
+                sess.run(optimizer, feed_dict={X: train_shear_data_mb, y: train_shear_label_mb, keep_prob: keep_probability})
                 
                 # Get next batch of swirl-rotate training data and labels
-                train_sr_data_mb, train_sr_label_mb = train_sr.next_batch(minibatch_size)
+                train_zoom_data_mb, train_zoom_label_mb = train_zoom.next_batch(minibatch_size)
                 # training operation - swirl-rotate noise data
-                sess.run(optimizer, feed_dict={X: train_sr_data_mb, y: train_sr_label_mb, keep_prob: keep_probability})
+                sess.run(optimizer, feed_dict={X: train_zoom_data_mb, y: train_zoom_label_mb, keep_prob: keep_probability})
             
             # compute average train epoch error
             train_errors.append(epoch_train_error / train_iterations)

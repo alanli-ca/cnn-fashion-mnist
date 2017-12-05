@@ -44,7 +44,7 @@ def plot_cnn_kernels(vis_layers, W_conv1, prefix="temp"):
     plt.savefig("./images/{}_filter_visualization.png".format(prefix))
     plt.show()
 
-def plot_images_side_by_side(class_images):
+def plot_images_side_by_side(class_images, prefix="temp"):
     '''
     Plot each of the images corresponding to each class side by side in grayscale.
     inputs:
@@ -60,4 +60,5 @@ def plot_images_side_by_side(class_images):
     all_concat = np.concatenate(img, 1)
     plt.imshow(all_concat, cmap='Greys')
     plt.axis('off')
+    plt.savefig("./images/{}_sample_images.png".format(prefix))
     plt.show()

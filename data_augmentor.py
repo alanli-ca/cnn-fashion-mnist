@@ -7,6 +7,8 @@ from skimage import filters
 from skimage import util
 import random
 import math
+import tensorflow as tf
+from copy import deepcopy
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -30,6 +32,24 @@ def plot_images_side_by_side(class_images):
 
 def flatten_dataset(dataset):
     return dataset.reshape(dataset.shape[0], -1)
+
+def data_preprocessing_augmentor(dataset, random_shift=True, random_rotation=True,\
+                                random_shear=True, random_zoom=True):
+    dataset = deepcopy(dataset)
+    for i in range(dataset.images.shape[0]):
+        if random_shift:
+            dataset._images[i,:] = tf.contrib.keras.preprocessing.image.random_shift(
+                dataset._images[i,:].reshape(1,28,28), 0.2, 0.2).reshape(-1,784)
+        if random_rotation:    
+            dataset._images[i,:] = tf.contrib.keras.preprocessing.image.random_rotation(
+                dataset._images[i,:].reshape(1,28,28), 15).reshape(-1,784)
+        if random_shear:
+            dataset._images[i,:] = tf.contrib.keras.preprocessing.image.random_shear(
+                dataset._images[i,:].reshape(1,28,28), 0.2).reshape(-1,784)
+        if random_zoom:
+            dataset._images[i,:] = tf.contrib.keras.preprocessing.image.random_zoom(
+                dataset._images[i,:].reshape(1,28,28), (0.85, 0.95)).reshape(-1,784)
+    return dataset
 
 def gaussian_filter_augmentor(dataset):
     '''
@@ -157,15 +177,3 @@ def pyramid_expand_augmentor(dataset, scale_factor=2):
         augmented_dataset[i] = transform.pyramid_expand(dataset[i,:,:], upscale=scale_factor) 
         
     return flatten_dataset(augmented_dataset)
-
-# def write_to_file(dataset, path="temp/", dataset_type="train"):
-#     if dataset_type == "train":
-#         out_name = "train-images-idx3-ubyte"
-#     elif dataset_type == "test":
-#         out_name = "t10k-images-idx3-ubyte"
-        
-#     f_write = open('./data/{}{}'.format(path, out_name), 'wb')
-#     idx2numpy.convert_to_file(f_write, dataset)
-#     f_write.close()
-    
-#     return None

@@ -3,6 +3,7 @@
 __pycache__
 models/
 images/
+test_images*
 *.DS_Store
 results/
 temp/

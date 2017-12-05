@@ -34,19 +34,16 @@ def main():
 
     # get model configuration
     model_configs = model_config.cnn_baseline
-    
+
     # load data
     train, valid, test =\
-    data.load_data(n_train_samples_per_class=model_configs['n_train_samples_per_class'],
+    data.load_data_with_augmentation(n_train_samples_per_class=model_configs['n_train_samples_per_class'],
                      classes=np.asarray(model_configs['classes']))
-    
+
     # get number of samples per dataset
     n_train_samples = train.images.shape[0]
     n_valid_samples = valid.images.shape[0]
     n_test_samples = test.images.shape[0]
-    
-    # get model configuration
-    model_configs = model_config.cnn_baseline
     
     # define input and output
     input_width = model_configs['input_width']
