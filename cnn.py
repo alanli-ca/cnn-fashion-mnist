@@ -5,6 +5,7 @@ import data
 import plot_utils
 import print_utils
 import model_config
+from time import time
 
 np.set_printoptions(precision=3, suppress=True)
 np.random.seed(42)
@@ -129,6 +130,9 @@ def main():
     prediction = tf.argmax(y_conv, axis=1)
     correct = tf.equal(tf.argmax(y_conv, axis=1), tf.argmax(y, axis=1))
     error = 1 - tf.reduce_mean(tf.cast(correct, tf.float32))
+
+    # compute confusion matrix
+    confusion_matrix = tf.confusion_matrix(tf.argmax(y, axis=1), prediction, num_classes=n_classes)
         
     # training op
     optimizer = tf.train.AdamOptimizer(learning_rate).minimize(cost)
@@ -149,6 +153,7 @@ def main():
         # calculate number of iterations per epoch
         train_iterations = int(n_train_samples / minibatch_size)
         
+        start_time = time()
         for epoch in range(n_epochs):
             if(epoch % 10 == 0):
                 print("--- epoch: {}".format(epoch))
@@ -187,9 +192,17 @@ def main():
                 epoch_test_error += test_mb_error
             avg_epoch_test_error = epoch_test_error / test_iterations
             test_errors.append(avg_epoch_test_error)
+        end_time = time()
         
+        # print training time
+        print("training time: {0:.2f} secs".format(end_time-start_time))
+
         # save final model
         save_path = saver.save(sess, "./models/{}_final.ckpt".format(MODEL_NAME))
+
+        # plot confusion matrix
+        confusion_mat = confusion_matrix.eval(feed_dict={X: test.images, y: test.labels, keep_prob: 1.0})
+        plot_utils.plot_confusion_matrix(confusion_mat)
         
         # print final errors
         print_utils.print_final_error(train_errors[-1], valid_errors[-1], test_errors[-1])

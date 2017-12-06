@@ -62,3 +62,12 @@ def plot_images_side_by_side(class_images, prefix="temp"):
     plt.axis('off')
     plt.savefig("./images/{}_sample_images.png".format(prefix))
     plt.show()
+
+def plot_confusion_matrix(confusion_matrix, prefix="temp"):
+    print(confusion_matrix)
+    np.fill_diagonal(confusion_matrix, 0)
+    plt.figure(figsize=(5,5))
+    plt.imshow(confusion_matrix, cmap='gray')
+    plt.axis('off')
+    plt.savefig("./images/{}_confusion_mat.png".format(prefix))
+    plt.show()
