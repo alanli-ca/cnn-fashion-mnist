@@ -42,13 +42,13 @@ def data_preprocessing_augmentor(dataset, random_shift=True, random_rotation=Tru
                 dataset._images[i,:].reshape(1,28,28), 0.2, 0.2).reshape(-1,784)
         if random_rotation:    
             dataset._images[i,:] = tf.contrib.keras.preprocessing.image.random_rotation(
-                dataset._images[i,:].reshape(1,28,28), 15).reshape(-1,784)
+                dataset._images[i,:].reshape(1,28,28), 20).reshape(-1,784)
         if random_shear:
             dataset._images[i,:] = tf.contrib.keras.preprocessing.image.random_shear(
-                dataset._images[i,:].reshape(1,28,28), 0.2).reshape(-1,784)
+                dataset._images[i,:].reshape(1,28,28), 0.3).reshape(-1,784)
         if random_zoom:
             dataset._images[i,:] = tf.contrib.keras.preprocessing.image.random_zoom(
-                dataset._images[i,:].reshape(1,28,28), (0.85, 0.95)).reshape(-1,784)
+                dataset._images[i,:].reshape(1,28,28), (0.7, 0.9)).reshape(-1,784)
     return dataset
 
 def gaussian_filter_augmentor(dataset):

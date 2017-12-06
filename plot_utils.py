@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 import tensorflow as tf
 import numpy as np
 import math
@@ -66,8 +67,12 @@ def plot_images_side_by_side(class_images, prefix="temp"):
 def plot_confusion_matrix(confusion_matrix, prefix="temp"):
     print(confusion_matrix)
     np.fill_diagonal(confusion_matrix, 0)
-    plt.figure(figsize=(5,5))
-    plt.imshow(confusion_matrix, cmap='gray')
-    plt.axis('off')
+    fig = plt.figure(figsize=(5, 5))    
+    ax1 = fig.add_subplot(1, 1, 1)
+    ax1.imshow(confusion_matrix, cmap='gray')
+    ax1.set_xlabel("predicted class")
+    ax1.set_ylabel("actual class")
+    ax1.xaxis.set_major_locator(ticker.MultipleLocator(1))
+    ax1.yaxis.set_major_locator(ticker.MultipleLocator(1))
     plt.savefig("./images/{}_confusion_mat.png".format(prefix))
     plt.show()
